@@ -111,5 +111,6 @@ exec "$JAVACMD" $JAVA_OPTS \
   -Dapp.repo="$REPO" \
   -Dapp.home="$BASEDIR" \
   -Dbasedir="$BASEDIR" \
+  -Dlog4j.configuration=file:${BASEDIR}/conf/log4j.properties \
   io.openmg.ordos.etl.sql2neo4j.Main \
   "$@"

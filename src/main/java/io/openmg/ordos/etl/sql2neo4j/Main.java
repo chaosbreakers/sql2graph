@@ -8,8 +8,9 @@ import io.openmg.ordos.etl.sql2neo4j.entity.Mysql;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.T;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +23,14 @@ import java.util.stream.Collectors;
  */
 public class Main {
 
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
     private static ObjectMapper mapper = new ObjectMapper();
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
+    public static void main(String[] args) throws Exception {
 
         /*  加载config.json配置文件，读取相关配置参数。 */
         Entity entity = mapper.readValue(Main.class.getClassLoader().getResource("conf/sql2neo4j.json"), Entity.class);
+        logger.info("加载配置文件：{}", mapper.writeValueAsString(entity));
         Objects.requireNonNull(entity);
         Mysql mysql = entity.getMysql();
         String mysqlDriver = mysql.getDriver();
@@ -53,6 +56,7 @@ public class Main {
         String tableName = mysql.getTable().getTableName();
         List<String> columns = columnsEntity.stream().map(Column::getName).collect(Collectors.toList());
         String sql = String.format("SELECT %s FROM %s", String.join(",", columns), tableName);
+        logger.info("执行sql的语句为：{}", sql);
 
         /* 执行查询。 */
         ResultSet rs = statement.executeQuery(sql);
@@ -101,9 +105,11 @@ public class Main {
             objects.add(T.label);
             objects.add(tableName);
             graph.addVertex(objects.toArray());
+            logger.info("添加数据：" + objects.toString());
         }
         graph.tx().commit();
         connection.close();
+        graph.close();
 
 //        List<Vertex> student = graph.traversal().V().has(T.label, P.eq("student")).toList();
 //        student.forEach(vertex -> System.out.println(String.format("%s,%s,%s,%s", vertex.property("name").value(),
