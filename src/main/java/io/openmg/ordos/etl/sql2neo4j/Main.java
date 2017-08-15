@@ -1,13 +1,12 @@
 package io.openmg.ordos.etl.sql2neo4j;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.openmg.ordos.etl.sql2neo4j.entity.Column;
-import io.openmg.ordos.etl.sql2neo4j.entity.Entity;
-import io.openmg.ordos.etl.sql2neo4j.entity.Graph;
-import io.openmg.ordos.etl.sql2neo4j.entity.Mysql;
+import io.openmg.ordos.etl.sql2neo4j.entity.*;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,8 @@ public class Main {
 
         /*  加载config.json配置文件，读取相关配置参数。 */
         Entity entity = mapper.readValue(Main.class.getClassLoader().getResource("conf/sql2neo4j.json"), Entity.class);
+//        Entity entity = mapper.readValue(new File("/Users/zhaoliang/github/sql2graph/conf/sql2neo4j.json"), Entity.class);
+
         logger.info("加载配置文件：{}", mapper.writeValueAsString(entity));
         Objects.requireNonNull(entity);
         Mysql mysql = entity.getMysql();
@@ -41,7 +42,7 @@ public class Main {
         /* neo4j graph加载。*/
         PropertiesConfiguration configuration = new PropertiesConfiguration();
         Graph neo4jGraphEntity = entity.getNeo4jGraph();
-        configuration.addProperty("gremlin.neo4j.directory", neo4jGraphEntity.getDirectory());
+        configuration.addProperty("gremlin.neo4j.directory", neo4jGraphEntity.getDirectory() + System.currentTimeMillis());
         configuration.addProperty("gremlin.graph", neo4jGraphEntity.getGremlinGraph());
         Neo4jGraph graph = Neo4jGraph.open(configuration);
 
@@ -51,70 +52,80 @@ public class Main {
         Connection connection = DriverManager.getConnection(databaseURL, user, password);
         Statement statement = connection.createStatement();
 
-        /* 准备相关参数，组建sql查询语句。 */
-        List<Column> columnsEntity = mysql.getTable().getColumns();
-        String tableName = mysql.getTable().getTableName();
-        List<String> columns = columnsEntity.stream().map(Column::getName).collect(Collectors.toList());
-        String sql = String.format("SELECT %s FROM %s", String.join(",", columns), tableName);
-        logger.info("执行sql的语句为：{}", sql);
+        List<Table> tables = mysql.getTables();
+
+        for (Table table : tables) {
+            /* 准备相关参数，组建sql查询语句。 */
+            List<Column> columnsEntity = table.getColumns();
+            String tableName = table.getTableName();
+            List<String> columns = columnsEntity.stream().map(Column::getName).collect(Collectors.toList());
+            String sql = String.format("SELECT %s FROM %s", String.join(",", columns), tableName);
+            logger.info("执行sql的语句为：{}", sql);
 
         /* 执行查询。 */
-        ResultSet rs = statement.executeQuery(sql);
+            ResultSet rs = statement.executeQuery(sql);
 
-        graph.tx().open();
-        while (rs.next()) {
-            ArrayList<Object> objects = new ArrayList<>();
-            columnsEntity.forEach((Column column) -> {
+            graph.tx().open();
+            while (rs.next()) {
+                ArrayList<Object> objects = new ArrayList<>();
+                columnsEntity.forEach((Column column) -> {
 
-                String name = column.getName();
-                String valueType = column.getValueType();
-                Object value = null;
-                switch (valueType) {
-                    case "string":
-                        try {
-                            value = rs.getString(name);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case "int":
-                        try {
-                            value = rs.getInt(name);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    case "long":
-                        try {
-                            value = rs.getLong(name);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        break;
-                    default:
-                        try {
-                            value = rs.getObject(name);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                }
-                objects.add(name);
-                objects.add(value);
+                    String name = column.getName();
+                    String valueType = column.getValueType();
+                    Object value = null;
+                    switch (valueType) {
+                        case "string":
+                            try {
+                                value = rs.getString(name);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            break;
+                        case "int":
+                            try {
+                                value = rs.getInt(name);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            break;
+                        case "long":
+                            try {
+                                value = rs.getLong(name);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            break;
+                        default:
+                            try {
+                                value = rs.getObject(name);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                    }
+                    objects.add(name);
+                    objects.add(value);
 
-            });
-            objects.add(T.label);
-            objects.add(tableName);
-            graph.addVertex(objects.toArray());
-            logger.info("添加数据：" + objects.toString());
+                });
+                objects.add(T.label);
+                objects.add(tableName);
+                graph.addVertex(objects.toArray());
+                logger.info("添加数据：" + objects.toString());
+            }
+            graph.tx().commit();
+
         }
-        graph.tx().commit();
         connection.close();
-        graph.close();
 
 //        List<Vertex> student = graph.traversal().V().has(T.label, P.eq("student")).toList();
 //        student.forEach(vertex -> System.out.println(String.format("%s,%s,%s,%s", vertex.property("name").value(),
 //                vertex.property("addr").value(),
 //                vertex.property("teacher").value(),
 //                vertex.property("age").value())));
+//
+//        List<Vertex> teacher = graph.traversal().V().has(T.label, P.eq("teacher")).toList();
+//        teacher.forEach(vertex -> System.out.println(String.format("%s,%s,%s", vertex.property("name").value(),
+//                vertex.property("addr").value(),
+//                vertex.property("age").value())));
+        graph.close();
     }
 }

@@ -4,27 +4,46 @@
     "databaseURL": "jdbc:mysql://localhost/test",
     "user": "root",
     "password": "zhaoliang123",
-    "table": {
-      "tableName": "student",
-      "columns": [
-        {
-          "name": "name",
-          "valueType": "string"
-        },
-        {
-          "name": "age",
-          "valueType": "string"
-        },
-        {
-          "name": "teacher",
-          "valueType": "string"
-        },
-        {
-          "name": "addr",
-          "valueType": "string"
-        }
-      ]
-    }
+    "tables": [
+      {
+        "tableName": "student",
+        "columns": [
+          {
+            "name": "name",
+            "valueType": "string"
+          },
+          {
+            "name": "age",
+            "valueType": "string"
+          },
+          {
+            "name": "teacher",
+            "valueType": "string"
+          },
+          {
+            "name": "addr",
+            "valueType": "string"
+          }
+        ]
+      },
+      {
+        "tableName": "teacher",
+        "columns": [
+          {
+            "name": "name",
+            "valueType": "string"
+          },
+          {
+            "name": "age",
+            "valueType": "string"
+          },
+          {
+            "name": "addr",
+            "valueType": "string"
+          }
+        ]
+      }
+    ]
   },
   "neo4jGraph": {
     "gremlin.neo4j.directory": "/Users/zhaoliang/test/neo4j",

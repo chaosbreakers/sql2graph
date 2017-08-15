@@ -1,5 +1,7 @@
 package io.openmg.ordos.etl.sql2neo4j.entity;
 
+import java.util.List;
+
 /**
  * mysql entity.
  * Created by zhaoliang on 2017/8/9.
@@ -9,7 +11,7 @@ public class Mysql {
     private String databaseURL;
     private String user;
     private String password;
-    private Table table;
+    private List<Table> tables;
 
     public String getDriver() {
         return driver;
@@ -44,22 +46,11 @@ public class Mysql {
         this.password = password;
     }
 
-    public Table getTable() {
-        return table;
+    public List<Table> getTables() {
+        return tables;
     }
 
-    public void setTable(Table table) {
-        this.table = table;
-    }
-
-    @Override
-    public String toString() {
-        return "Mysql{" +
-                "driver='" + driver + '\'' +
-                ", databaseURL='" + databaseURL + '\'' +
-                ", user='" + user + '\'' +
-                ", password='" + password + '\'' +
-                ", table=" + table +
-                '}';
+    public void setTables(List<Table> tables) {
+        this.tables = tables;
     }
 }
