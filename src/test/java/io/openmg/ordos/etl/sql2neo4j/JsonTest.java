@@ -1,23 +1,26 @@
 package io.openmg.ordos.etl.sql2neo4j;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.openmg.ordos.etl.sql2neo4j.entity.Entity;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * json test.
  * Created by zhaoliang on 2017/8/9.
  */
 public class JsonTest {
-//    @Test
+    //    @Test
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     public void fromJson() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
         Entity entity = mapper.readValue(JsonTest.class.getClassLoader()
                 .getResourceAsStream("sql2neo4j.json"), Entity.class);
         assertNotNull(entity);
@@ -33,9 +36,14 @@ public class JsonTest {
                 "  \"name\": \"hello\",\n" +
                 "  \"address\": \"CHANGSHA\"\n" +
                 "}";
-        ObjectMapper mapper = new ObjectMapper();
 
+        Map<String, String> graph = mapper.readValue(testString, new TypeReference<Map<String, String>>() {
+        });
 
+        List<String> keys = Arrays.asList("graph.class", "name", "address");
+        List<String> values = Arrays.asList("io.graph.name", "hello", "CHANGSHA");
+        graph.keySet().forEach(key -> assertTrue(keys.contains(key)));
+        graph.keySet().stream().map(graph::get).forEach(value -> assertTrue(values.contains(value)));
     }
 
     @Test
@@ -48,24 +56,5 @@ public class JsonTest {
         String join = String.join(",", strings);
         String expected = "i,love,you";
         assertEquals(expected, join);
-    }
-
-    class TestEntity {
-        private HashMap<String, String> map;
-
-        public HashMap<String, String> getMap() {
-            return map;
-        }
-
-        public void setMap(HashMap<String, String> map) {
-            this.map = map;
-        }
-
-        @Override
-        public String toString() {
-            return "TestEntity{" +
-                    "map=" + map +
-                    '}';
-        }
     }
 }

@@ -1,4 +1,6 @@
-package io.openmg.ordos.etl.sql2neo4j.entity;
+package io.openmg.ordos.etl.sql2neo4j.entity.mysql;
+
+import io.openmg.ordos.etl.sql2neo4j.entity.mysql.Column;
 
 import java.util.List;
 

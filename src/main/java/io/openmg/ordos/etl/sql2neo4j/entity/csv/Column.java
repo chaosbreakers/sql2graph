@@ -1,11 +1,20 @@
-package io.openmg.ordos.etl.sql2neo4j.entity;
+package io.openmg.ordos.etl.sql2neo4j.entity.csv;
 
 /**
- * Created by zhaoliang on 2017/8/9.
+ * Created by zhaoliang on 2017/8/16.
  */
 public class Column {
+    private int pos;
     private String name;
     private String valueType;
+
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
+    }
 
     public String getName() {
         return name;
@@ -26,7 +35,8 @@ public class Column {
     @Override
     public String toString() {
         return "Column{" +
-                "name='" + name + '\'' +
+                "pos=" + pos +
+                ", name='" + name + '\'' +
                 ", valueType='" + valueType + '\'' +
                 '}';
     }
