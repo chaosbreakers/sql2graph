@@ -29,7 +29,7 @@ public class Main {
         /* neo4j graph加载。*/
         PropertiesConfiguration configuration = new PropertiesConfiguration();
         Graph neo4jGraphEntity = entity.getNeo4jGraph();
-        configuration.addProperty("gremlin.neo4j.directory", neo4jGraphEntity.getDirectory() + System.currentTimeMillis());
+        configuration.addProperty("gremlin.neo4j.directory", neo4jGraphEntity.getDirectory());
         configuration.addProperty("gremlin.graph", neo4jGraphEntity.getGremlinGraph());
         Neo4jGraph graph = Neo4jGraph.open(configuration);
 

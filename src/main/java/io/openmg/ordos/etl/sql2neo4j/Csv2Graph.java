@@ -16,14 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * loading csv file data to graph.
  * Created by zhaoliang on 2017/8/16.
  */
 public class Csv2Graph implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(Csv2Graph.class);
 
-    List<CSVSchema> csv;
-    Graph graph;
+    private List<CSVSchema> csv;
+    private Graph graph;
 
     public Csv2Graph(List<CSVSchema> csv, Graph graph) {
         this.csv = csv;
@@ -68,7 +69,7 @@ public class Csv2Graph implements Runnable {
      * @param schema csv schema.
      * @param data   one line data in csv file.
      */
-    public void write2graph(CSVSchema schema, String[] data) {
+    private void write2graph(CSVSchema schema, String[] data) {
         List<Column> columns = schema.getColumns();
         ArrayList<Object> objects = new ArrayList<>();
         columns.stream().forEach(column -> {
